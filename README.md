@@ -11,7 +11,7 @@
 the official Roboflow python package that interfaces with the [Roboflow API](https://docs.roboflow.com). Key features of
 Roboflow:
 
-## Installation
+## Installating Roboflow
 
 To install this package, please use `Python 3.6` or higher. We provide three different ways to install the Roboflow
 package to use within your own projects.
@@ -22,7 +22,7 @@ Install from PyPi (Recommended):
 pip install roboflow
 ```
 
-Install from Source:
+Install Roboflow from Source:
 
 ```bash
 git clone https://github.com/roboflow-ai/roboflow-python.git
@@ -34,9 +34,11 @@ pip3 install -r requirements.txt
 
 # RTSP streaming using GStreamer
 
+https://user-images.githubusercontent.com/113200203/210094301-7906bf10-205f-4980-85b2-111752dbdbdf.mp4
+
 Python implementation to stream camera feed from OpenCV videoCapture via RTSP server using GStreamer 1.0.
 
-## Installation
+## Installating Gstreamer and RTSP Application
 
 This implementation has been developed and tested on Ubuntu 16.04 and 18.04. So the installation steps are specific to debian based linux distros.
 

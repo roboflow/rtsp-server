@@ -11,14 +11,6 @@
 the official Roboflow python package that interfaces with the [Roboflow API](https://docs.roboflow.com). Key features of
 Roboflow:
 
-- Import and Export image datasets into any supported [format](https://roboflow.com/formats)
-- [Preprocess](https://docs.roboflow.com/image-transformations/image-preprocessing)
-  and [augment](https://docs.roboflow.com/image-transformations/image-augmentation) data using Roboflow's dataset
-  management tools
-- Train computer vision models using [Roboflow Train](https://docs.roboflow.com/train) and deploy
-  to [production](https://docs.roboflow.com/inference)
-- Use [community curated projects](https://universe.roboflow.com/) to start building your own vision-powered products
-
 ## Installation
 
 To install this package, please use `Python 3.6` or higher. We provide three different ways to install the Roboflow
@@ -49,21 +41,27 @@ Python implementation to stream camera feed from OpenCV videoCapture via RTSP se
 This implementation has been developed and tested on Ubuntu 16.04 and 18.04. So the installation steps are specific to debian based linux distros.
 
 ### Step-1 Install GStreamer-1.0 and related plugins
-    ```bash
+    
     sudo apt-get install libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-doc gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
-    ```
+    
 ### Step-2 Install RTSP server
-    ```bash
+    
     sudo apt-get install libglib2.0-dev libgstrtspserver-1.0-dev gstreamer1.0-rtsp
-    ```
+    
+### Step-3 Install OpenCV2
+    
+    pip install opencv-python
+    
 ### Requirement
-- Python 3.x
-- Opencv 3.x or above ( pip install opencv-python )
+- Python 3.6+
+- Linux Based OS (Ubuntu 20.04 - Tested)
 
 ### Usage
 > Run stream.py with required arguments to start the rtsp server
+
 ##### Sample 
-    python stream.py --device_id 0 --fps 30 --image_width 640 --image_height 480 --port 8554 --stream_uri /video_stream
+    
+    python stream.py
     
 ### Visualization
 

@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jan  20 02:07:13 2019
+
+@author: prabhakar
+"""
 # import necessary argumnets 
 import gi
 import cv2
@@ -9,39 +16,6 @@ gi.require_version('GstRtspServer', '1.0')
 from gi.repository import Gst, GstRtspServer, GObject, GLib
 from roboflow import Roboflow
 
-# Roboflow Authentication
-# obtaining your API key: https://docs.roboflow.com/rest-api#obtaining-your-api-key
-rf = Roboflow(api_key="IUnkIPBUiDN9mBBqlKyl")
-workspace = rf.workspace()
-
-# Gstreamer variables
-device_id = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4"
-fps = 24
-image_width = 240
-image_height = 160
-port = 8554
-stream_uri = "/video_stream"
-
-# Access output RTSP via VLC or other application
-# Example RTSP output: rtsp://172.27.23.235:8554/video_stream
-
-# # getting the required information from the user # UNCOMMENT FOR ARGPARSER
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--device_id", required=True, help="device id for the \
-#                 video device or video file location")
-# parser.add_argument("--fps", required=True, help="fps of the camera", type = int)
-# parser.add_argument("--image_width", required=True, help="video frame width", type = int)
-# parser.add_argument("--image_height", required=True, help="video frame height", type = int)
-# parser.add_argument("--port", default=8554, help="port to stream video", type = int)
-# parser.add_argument("--stream_uri", default = "/video_stream", help="rtsp video stream uri")
-# opt = parser.parse_args()
-
-try:
-    device_id = int(device_id)
-except ValueError:
-    pass
-
-
 # Sensor Factory class which inherits the GstRtspServer base class and add
 # properties to it.
 class SensorFactory(GstRtspServer.RTSPMediaFactory):
@@ -49,14 +23,14 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
         super(SensorFactory, self).__init__(**properties)
         self.cap = cv2.VideoCapture("rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4")
         self.number_frames = 0
-        self.fps = fps
+        self.fps = opt.fps
         self.duration = 1 / self.fps * Gst.SECOND  # duration of a frame in nanoseconds
         self.launch_string = 'appsrc name=source is-live=true block=true format=GST_FORMAT_TIME ' \
                              'caps=video/x-raw,format=BGR,width={},height={},framerate={}/1 ' \
                              '! videoconvert ! video/x-raw,format=I420 ' \
                              '! x264enc speed-preset=ultrafast tune=zerolatency ' \
                              '! rtph264pay config-interval=1 name=pay0 pt=96' \
-                             .format(image_width, image_height, self.fps)
+                             .format(opt.image_width, opt.image_height, self.fps)
 
     # method to capture the video feed from the camera and push it to the
     # streaming buffer.
@@ -66,7 +40,7 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
             if ret:
                 # It is better to change the resolution of the camera 
                 # instead of changing the image shape as it affects the image quality.
-                frame = cv2.resize(frame, (image_width, image_height), \
+                frame = cv2.resize(frame, (opt.image_width, opt.image_height), \
                     interpolation = cv2.INTER_LINEAR)
 
                 data = frame.tostring()
@@ -77,7 +51,6 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
                 buf.pts = buf.dts = int(timestamp)
                 buf.offset = timestamp
                 self.number_frames += 1
-                frame_counter = self.number_frames
                 retval = src.emit('push-buffer', buf)
                 print('pushed buffer, frame {}, duration {} ns, durations {} s'.format(self.number_frames,
                                                                                        self.duration,
@@ -85,30 +58,6 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
 
                 if retval != Gst.FlowReturn.OK:
                     print(retval)
-
-                if frame_counter % 60 == 0: 
-
-                    raw_data_location = frame
-                    raw_data_extension = ".jpg"
-
-                    # replace * with your model version number for inference
-                    inference_endpoint = ["obs-3", 16]
-                    upload_destination = "obs-3"
-
-                    conditionals = {
-                        "required_objects_count" : 0,
-                        "required_class_count": 0,
-                        "target_classes": [],
-                        "minimum_size_requirement" : float('-inf'),
-                        "maximum_size_requirement" : float('inf'),
-                        "confidence_interval" : [10,90],
-                    }
-
-                    workspace.active_learning(raw_data_location=raw_data_location, 
-                        raw_data_extension=raw_data_extension,
-                        inference_endpoint=inference_endpoint,
-                        upload_destination=upload_destination,
-                        conditionals=conditionals,use_localhost=False)
 
     # attach the launch string to the override method
     def do_create_element(self, url):
@@ -126,9 +75,25 @@ class GstServer(GstRtspServer.RTSPServer):
         super(GstServer, self).__init__(**properties)
         self.factory = SensorFactory()
         self.factory.set_shared(True)
-        self.set_service(str(port))
-        self.get_mount_points().add_factory(stream_uri, self.factory)
+        self.set_service(str(opt.port))
+        self.get_mount_points().add_factory(opt.stream_uri, self.factory)
         self.attach(None)
+
+# getting the required information from the user 
+parser = argparse.ArgumentParser()
+parser.add_argument("--device_id", required=True, help="device id for the \
+                video device or video file location")
+parser.add_argument("--fps", required=True, help="fps of the camera", type = int)
+parser.add_argument("--image_width", required=True, help="video frame width", type = int)
+parser.add_argument("--image_height", required=True, help="video frame height", type = int)
+parser.add_argument("--port", default=8554, help="port to stream video", type = int)
+parser.add_argument("--stream_uri", default = "/video_stream", help="rtsp video stream uri")
+opt = parser.parse_args()
+
+try:
+    opt.device_id = int(opt.device_id)
+except ValueError:
+    pass
 
 # initializing the threads and running the stream on loop.
 GObject.threads_init()

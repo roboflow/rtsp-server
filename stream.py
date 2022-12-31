@@ -14,30 +14,30 @@ from roboflow import Roboflow
 rf = Roboflow(api_key="API")
 workspace = rf.workspace()
 
-# Gstreamer variables
-device_id = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4"
-fps = 24
-image_width = 240
-image_height = 160
-port = 8554
+# # Gstreamer variables
+# device_id = "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4"
+# fps = 24
+# image_width = 240
+# image_height = 160
+# port = 8554
 stream_uri = "/video_stream"
 
 # Access output RTSP via VLC or other application
 # Example RTSP output: rtsp://172.27.23.235:8554/video_stream
 
-# # getting the required information from the user # UNCOMMENT FOR ARGPARSER
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--device_id", required=True, help="device id for the \
-#                 video device or video file location")
-# parser.add_argument("--fps", required=True, help="fps of the camera", type = int)
-# parser.add_argument("--image_width", required=True, help="video frame width", type = int)
-# parser.add_argument("--image_height", required=True, help="video frame height", type = int)
-# parser.add_argument("--port", default=8554, help="port to stream video", type = int)
+# getting the required information from the user # UNCOMMENT FOR ARGPARSER
+parser = argparse.ArgumentParser()
+parser.add_argument("--device_id", default="rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4", help="device id for the \
+                video device or video file location")
+parser.add_argument("--fps", default=24, help="fps of the camera", type = int)
+parser.add_argument("--image_width", default=240, help="video frame width", type = int)
+parser.add_argument("--image_height", default=160, help="video frame height", type = int)
+parser.add_argument("--port", default=8554, help="port to stream video", type = int)
 # parser.add_argument("--stream_uri", default = "/video_stream", help="rtsp video stream uri")
-# opt = parser.parse_args()
+opt = parser.parse_args()
 
 try:
-    device_id = int(device_id)
+    device_id = int(opt.device_id)
 except ValueError:
     pass
 
@@ -49,14 +49,14 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
         super(SensorFactory, self).__init__(**properties)
         self.cap = cv2.VideoCapture("rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4")
         self.number_frames = 0
-        self.fps = fps
+        self.fps = opt.fps
         self.duration = 1 / self.fps * Gst.SECOND  # duration of a frame in nanoseconds
         self.launch_string = 'appsrc name=source is-live=true block=true format=GST_FORMAT_TIME ' \
                              'caps=video/x-raw,format=BGR,width={},height={},framerate={}/1 ' \
                              '! videoconvert ! video/x-raw,format=I420 ' \
                              '! x264enc speed-preset=ultrafast tune=zerolatency ' \
                              '! rtph264pay config-interval=1 name=pay0 pt=96' \
-                             .format(image_width, image_height, self.fps)
+                             .format(opt.image_width, opt.image_height, self.fps)
 
     # method to capture the video feed from the camera and push it to the
     # streaming buffer.
@@ -66,7 +66,7 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
             if ret:
                 # It is better to change the resolution of the camera 
                 # instead of changing the image shape as it affects the image quality.
-                frame = cv2.resize(frame, (image_width, image_height), \
+                frame = cv2.resize(frame, (opt.image_width, opt.image_height), \
                     interpolation = cv2.INTER_LINEAR)
 
                 data = frame.tostring()
@@ -126,7 +126,7 @@ class GstServer(GstRtspServer.RTSPServer):
         super(GstServer, self).__init__(**properties)
         self.factory = SensorFactory()
         self.factory.set_shared(True)
-        self.set_service(str(port))
+        self.set_service(str(opt.port))
         self.get_mount_points().add_factory(stream_uri, self.factory)
         self.attach(None)
 

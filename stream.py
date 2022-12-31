@@ -11,7 +11,7 @@ from roboflow import Roboflow
 
 # Roboflow Authentication
 # obtaining your API key: https://docs.roboflow.com/rest-api#obtaining-your-api-key
-rf = Roboflow(api_key="IUnkIPBUiDN9mBBqlKyl")
+rf = Roboflow(api_key="API")
 workspace = rf.workspace()
 
 # Gstreamer variables

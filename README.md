@@ -63,7 +63,7 @@ This implementation has been developed and tested on Ubuntu 16.04 and 18.04. So 
 
 ##### Sample 
     
-    python stream.py
+    python stream.py --device_id "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4" --fps 24 --image_width 240 --image_height 160 --port 8554
     
 ### Visualization
 

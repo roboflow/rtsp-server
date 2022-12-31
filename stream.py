@@ -47,7 +47,7 @@ except ValueError:
 class SensorFactory(GstRtspServer.RTSPMediaFactory):
     def __init__(self, **properties):
         super(SensorFactory, self).__init__(**properties)
-        self.cap = cv2.VideoCapture("rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4")
+        self.cap = cv2.VideoCapture(opt.device_id)
         self.number_frames = 0
         self.fps = fps
         self.duration = 1 / self.fps * Gst.SECOND  # duration of a frame in nanoseconds
